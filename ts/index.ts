@@ -1,2 +1,2 @@
-export class BindleClient {
-}
+export { BindleClient } from './client';
+export * from './types';
