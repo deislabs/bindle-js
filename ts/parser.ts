@@ -59,28 +59,30 @@ export function parseBindleMetadata(toml: AnyJson): Result<BindleMetadata, Invoi
         return Result.fail({ reason: 'missing-required-field', fieldName: 'bindle' });
     }
 
-    const name = bindle['name'] as string | undefined;
-    if (!name) {
-        return Result.fail({ reason: 'missing-required-field', fieldName: 'bindle.name' });
+    const name = strValue(bindle, 'name', 'bindle');
+    if (!name.succeeded) {
+        return name;
     }
 
-    const version = bindle['version'] as string | undefined;
-    if (!version) {
-        return Result.fail({ reason: 'missing-required-field', fieldName: 'bindle.version' });
+    const version = strValue(bindle, 'version', 'bindle');
+    if (!version.succeeded) {
+        return version;
     }
     // TODO: validate formatting
 
-    const authors = bindle['authors'] as JsonArray || [];
-    if (!Array.isArray(authors)) {
-        return Result.fail({ reason: 'invalid-field-value', fieldName: 'bindle.authors' });
-    }
-    if (!isStringArray(authors)) {
-        return Result.fail({ reason: 'invalid-field-value', fieldName: 'bindle.authors' });
+    const authors = strArrayValue(bindle, 'authors', 'bindle');
+    if (!authors.succeeded) {
+        return authors;
     }
 
     const description = bindle['description'] as string | undefined;
 
-    return Result.ok({ name, version, description, authors });
+    return Result.ok({
+        name: name.value,
+        version: version.value,
+        description,
+        authors: authors.value
+    });
 }
 
 export function parseAnnotations(toml: AnyJson): Result<Dictionary<string>, InvoiceParseError> {
