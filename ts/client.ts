@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as toml from '@iarna/toml';
 
 import { Invoice } from './types';
-import { parseInvoice } from './parser';
+import { InvoiceParseError, parseInvoice } from './parser';
 
 const INVOICE_PATH = '_i';
 
@@ -23,7 +23,7 @@ export class BindleClient {
 }
 
 export class BindleClientError extends Error {
-    constructor(message: string, readonly details: any) {
+    constructor(message: string, readonly details: InvoiceParseError) {
         super(message);
     }
 }
