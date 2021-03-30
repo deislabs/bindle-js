@@ -22,8 +22,12 @@
         "strictNullChecks": true,
         "noImplicitThis": true
     },
+    "include": [
+        "./ts/**/*"
+    ],
     "exclude": [
         "node_modules",
+        "test",
         "js"
     ]
 }
