@@ -53,7 +53,7 @@ export function parseInvoice(toml: JsonMap): Result<Invoice, InvoiceParseError> 
     });
 }
 
-export function parseBindleMetadata(toml: AnyJson): Result<BindleMetadata, InvoiceParseError> {
+function parseBindleMetadata(toml: AnyJson): Result<BindleMetadata, InvoiceParseError> {
     const bindle = toml as JsonMap | undefined;
     if (!bindle) {
         return Result.fail({ reason: 'missing-required-field', fieldName: 'bindle' });
@@ -85,7 +85,7 @@ export function parseBindleMetadata(toml: AnyJson): Result<BindleMetadata, Invoi
     });
 }
 
-export function parseAnnotations(toml: AnyJson): Result<Dictionary<string>, InvoiceParseError> {
+function parseAnnotations(toml: AnyJson): Result<Dictionary<string>, InvoiceParseError> {
     const annotations = toml as JsonMap | undefined;
     if (!annotations) {
         return Result.ok({});
@@ -99,7 +99,7 @@ export function parseAnnotations(toml: AnyJson): Result<Dictionary<string>, Invo
     return Result.ok(annotations);
 }
 
-export function parseParcels(toml: AnyJson): Result<Parcel[], InvoiceParseError> {
+function parseParcels(toml: AnyJson): Result<Parcel[], InvoiceParseError> {
     const parcels = toml as JsonArray | undefined;
     if (!parcels) {
         return Result.ok([]);
@@ -203,7 +203,7 @@ function parseConditions(toml: AnyJson | undefined): Result<(Conditions | undefi
     });
 }
 
-export function parseGroups(toml: AnyJson): Result<Group[], InvoiceParseError> {
+function parseGroups(toml: AnyJson): Result<Group[], InvoiceParseError> {
     const groups = toml as JsonArray | undefined;
     if (!groups) {
         return Result.ok([]);
