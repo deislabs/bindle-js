@@ -16,4 +16,10 @@ describe("Bindle", () => {
         assert.equal(1, invoice.parcels.length);
         assert.equal('isolinear_chip.txt', invoice.parcels[0].label.name);
     });
+    it("queries the sample registry", async () => {
+        const client = new bindle.BindleClient('https://bindle.deislabs.io/v1', testAgent);
+        const qr = await client.queryInvoices({ query: 'warpcore' });
+        assert.equal(1, qr.total);
+        assert.equal(1, qr.invoices.length);
+    });
 });

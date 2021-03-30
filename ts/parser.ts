@@ -1,7 +1,7 @@
 import { AnyJson, JsonMap, JsonArray } from '@iarna/toml';
 
 import { Result } from './result';
-import { BindleMetadata, Conditions, Dictionary, Group, Invoice, Label, Parcel } from './types';
+import { BindleMetadata, Conditions, Dictionary, Group, Invoice, Label, Parcel, QueryResult } from './types';
 
 export type InvoiceParseError =
     { reason: 'missing-required-field'; fieldName: string } |
@@ -249,6 +249,58 @@ function parseGroup(toml: AnyJson | undefined): Result<Group, InvoiceParseError>
     });
 }
 
+export function parseQueryResult(toml: JsonMap): Result<QueryResult, InvoiceParseError /* TODO: okay type? */> {
+    const query = strValue(toml, 'query', '');
+    if (!query.succeeded) {
+        return query;
+    }
+
+    const offset = numValue(toml, 'offset', '');
+    if (!offset.succeeded) {
+        return offset;
+    }
+
+    const limit = numValue(toml, 'limit', '');
+    if (!limit.succeeded) {
+        return limit;
+    }
+
+    const strict = boolValue(toml, 'strict', '');
+    if (!strict.succeeded) {
+        return strict;
+    }
+
+    const yanked = boolValue(toml, 'yanked', '');
+    if (!yanked.succeeded) {
+        return yanked;
+    }
+
+    const total = numValue(toml, 'total', '');
+    if (!total.succeeded) {
+        return total;
+    }
+
+    const more = boolValue(toml, 'more', '');
+    if (!more.succeeded) {
+        return more;
+    }
+
+    const invoices = arrayValue<Invoice>(toml, 'invoices', '', parseInvoice);
+    if (!invoices.succeeded) {
+        return invoices;
+    }
+
+    return Result.ok({
+        query: query.value,
+        offset: offset.value,
+        limit: limit.value,
+        strict: strict.value,
+        yanked: yanked.value,
+        total: total.value,
+        more: more.value,
+        invoices: invoices.value,
+    });
+}
 
 function isStringArray(arg: any[]): arg is string[] {
     return arg.every(isString);
@@ -317,6 +369,31 @@ function numValue(map: JsonMap, key: string, parent: string): Result<number, Inv
         return Result.fail({ reason: 'invalid-field-value', fieldName: fieldName(parent, key) });
     }
     return Result.ok(value);
+}
+
+function boolValue(map: JsonMap, key: string, parent: string): Result<boolean, InvoiceParseError> {
+    const value = map[key];
+    if (value === undefined) {
+        return Result.fail({ reason: 'missing-required-field', fieldName: fieldName(parent, key) });
+    }
+    if (!(value === true || value === false)) {
+        return Result.fail({ reason: 'invalid-field-value', fieldName: fieldName(parent, key) });
+    }
+    return Result.ok(value);
+}
+
+function arrayValue<T>(map: JsonMap, key: string, parent: string, parseOne: (v: JsonMap) => Result<T, InvoiceParseError>): Result<T[], InvoiceParseError> {
+    const value = map[key];
+    if (!value) {
+        return Result.fail({ reason: 'missing-required-field', fieldName: fieldName(parent, key) });
+    }
+    if (!Array.isArray(value)) {
+        return Result.fail({ reason: 'invalid-field-value', fieldName: fieldName(parent, key) });
+    }
+    if (!isJsonMapArray(value)) {
+        return Result.fail({ reason: 'invalid-field-value', fieldName: fieldName(parent, key) });
+    }
+    return Result.allOk(value.map((v) => parseOne(v)));
 }
 
 function defaultMissing<T>(value: Result<T, InvoiceParseError>, defaultValue: T): Result<T, InvoiceParseError> {
