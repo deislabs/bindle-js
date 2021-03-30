@@ -35,6 +35,7 @@
             "always"
         ],
         "@typescript-eslint/type-annotation-spacing": "warn",
+        "@typescript-eslint/no-explicit-any": "off",
         "arrow-parens": [
             "warn",
             "always"
