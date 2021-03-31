@@ -40,3 +40,25 @@ export interface Group {
     readonly required: boolean;
     readonly satisfiedBy: 'allOf' | 'oneOf' | 'optional';
 }
+
+export interface QueryOptions {
+    query?: string;
+    version?: string;
+    offset?: number;
+    limit?: number;
+    strict?: boolean;
+    yanked?: boolean;
+}
+
+export interface QueryResult {
+    readonly query: string;
+    // readonly version: string;  // Apparently not
+    readonly offset: number;
+    readonly limit: number;
+    readonly strict: boolean;
+    readonly yanked: boolean;
+
+    readonly total: number;
+    readonly more: boolean;
+    readonly invoices: ReadonlyArray<Invoice>;
+}
