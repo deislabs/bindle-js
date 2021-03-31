@@ -21,8 +21,9 @@ export class BindleClient {
         return undefined;
     }
 
-    public async getInvoice(id: string): Promise<Invoice> {
-        const path = `/${INVOICE_PATH}/${id}`;
+    public async getInvoice(id: string, options?: GetInvoiceOptions): Promise<Invoice> {
+        const query = getInvoiceQueryString(options);
+        const path = `/${INVOICE_PATH}/${id}${query}`;
         const response = await axios.get<string>(this.baseUrl + path, this.requestConfig());
         const tomlText = response.data;
         const tomlParsed = toml.parse(tomlText);
@@ -33,8 +34,8 @@ export class BindleClient {
         throw new BindleClientError('Invoice parse error', invoice.error);
     }
 
-    public async queryInvoices(options: QueryOptions): Promise<QueryResult> {
-        const query = queryStringFrom(options);
+    public async queryInvoices(options: QueryOptions | undefined): Promise<QueryResult> {
+        const query = queryInvoicesQueryString(options);
         const path = `/${QUERY_PATH}${query}`;
         const response = await axios.get<string>(this.baseUrl + path, this.requestConfig());
         const tomlText = response.data;
@@ -47,13 +48,28 @@ export class BindleClient {
     }
 }
 
+export interface GetInvoiceOptions {
+    readonly includeYanked?: boolean;
+}
+
 export class BindleClientError extends Error {
     constructor(message: string, readonly details: InvoiceParseError) {
         super(message);
     }
 }
 
-function queryStringFrom(options: QueryOptions): string {
+function getInvoiceQueryString(options: GetInvoiceOptions | undefined): string {
+    if (options && options.includeYanked) {
+        return '?yanked=true';
+    }
+    return '';
+}
+
+function queryInvoicesQueryString(options: QueryOptions | undefined): string {
+    if (!options) {
+        return '';
+    }
+
     const factors = Array.of<string>();
 
     const mappings = [
