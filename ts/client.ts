@@ -51,6 +51,11 @@ export class BindleClient {
         throw new BindleClientError('CreateInvoice response parse error', result.error);
     }
 
+    public async yankInvoice(id: string): Promise<void> {
+        const path = `/${INVOICE_PATH}/${id}`;
+        await axios.delete<string>(this.baseUrl + path, this.requestConfig());
+    }
+
     public async queryInvoices(options: QueryOptions | undefined): Promise<QueryResult> {
         const query = queryInvoicesQueryString(options);
         const path = `/${QUERY_PATH}${query}`;
