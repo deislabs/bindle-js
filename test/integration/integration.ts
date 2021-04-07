@@ -5,6 +5,8 @@ import { assert } from 'chai';
 import * as bindle from '../../ts/index';
 import { Invoice } from '../../ts/index';
 
+import * as asyncassert from './asyncassert';
+
 // To run this against the data assumed in the integration tests, run the Bindle server
 // to serve files on port 14044 from the test/data directory.  If you have Rust installed you can
 // do by cloning the Bindle repo and running:
@@ -87,5 +89,13 @@ describe("Bindle", () => {
         assert.equal(invoice.annotations.penguinType, fetched.annotations.penguinType);
         assert.equal(invoice.parcels.length, fetched.parcels.length);
         assert.equal(invoice.groups.length, fetched.groups.length);
+    });
+    it("yanks invoices", async () => {
+        await client.yankInvoice('your/fancy/bindle/0.3.0');
+        await asyncassert.throws(async () => {
+            await client.getInvoice('your/fancy/bindle/0.3.0');
+        });
+        const invoice = await client.getInvoice('your/fancy/bindle/0.3.0', { includeYanked: true });
+        assert.equal('your/fancy/bindle', invoice.bindle.name);
     });
 });
