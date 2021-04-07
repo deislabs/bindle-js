@@ -2,8 +2,8 @@ import axios, { AxiosRequestConfig } from 'axios';
 import * as https from 'https';
 import * as toml from '@iarna/toml';
 
-import { Invoice, QueryOptions, QueryResult } from './types';
-import { InvoiceParseError, parseInvoice, parseQueryResult } from './parser';
+import { CreateInvoiceResult, Invoice, QueryOptions, QueryResult } from './types';
+import { InvoiceParseError, jsoniseInvoice, parseCreateInvoiceResult, parseInvoice, parseQueryResult } from './parser';
 
 const INVOICE_PATH = '_i';
 const QUERY_PATH = '_q';
@@ -14,9 +14,12 @@ export class BindleClient {
         private agent?: https.Agent
     ) {}
 
-    requestConfig(): AxiosRequestConfig | undefined {
+    requestConfig(headers?: { [key: string]: string }): AxiosRequestConfig | undefined {
         if (this.agent) {
-            return { httpsAgent: this.agent };
+            return { httpsAgent: this.agent, headers };
+        }
+        if (headers) {
+            return { headers };
         }
         return undefined;
     }
@@ -32,6 +35,20 @@ export class BindleClient {
             return invoice.value;
         }
         throw new BindleClientError('Invoice parse error', invoice.error);
+    }
+
+    public async createInvoice(invoice: Invoice): Promise<CreateInvoiceResult> {
+        const invoiceMap = jsoniseInvoice(invoice);
+        const invoiceTOML = toml.stringify(invoiceMap);
+        const path = `/${INVOICE_PATH}`;
+        const response = await axios.post(this.baseUrl + path, invoiceTOML, this.requestConfig({ 'Content-Type': 'application/toml' }));
+        const tomlText = response.data;
+        const tomlParsed = toml.parse(tomlText);
+        const result = parseCreateInvoiceResult(tomlParsed);
+        if (result.succeeded) {
+            return result.value;
+        }
+        throw new BindleClientError('CreateInvoice response parse error', result.error);
     }
 
     public async queryInvoices(options: QueryOptions | undefined): Promise<QueryResult> {
