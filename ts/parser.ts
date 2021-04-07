@@ -1,9 +1,10 @@
 import { AnyJson, JsonMap, JsonArray } from '@iarna/toml';
 
 import { Result } from './result';
-import { BindleMetadata, Conditions, Dictionary, Group, Invoice, Label, Parcel, QueryResult } from './types';
+import { BindleMetadata, Conditions, CreateInvoiceResult, Dictionary, Group, Invoice, Label, Parcel, QueryResult } from './types';
 
 export type InvoiceParseError =
+    { reason: 'not-a-map' } |
     { reason: 'missing-required-field'; fieldName: string } |
     { reason: 'invalid-field-value'; fieldName: string } |
     { reason: 'unknown-bindle-version'; actualVersion: string };
@@ -47,7 +48,7 @@ export function parseInvoice(toml: JsonMap): Result<Invoice, InvoiceParseError> 
         bindleVersion,
         yanked,
         bindle: bindle.value,
-        annnotations: annotations.value,
+        annotations: annotations.value,
         parcels: parcels.value,
         groups: groups.value,
     });
@@ -401,4 +402,80 @@ function defaultMissing<T>(value: Result<T, InvoiceParseError>, defaultValue: T)
         return Result.ok(defaultValue);
     }
     return value;
+}
+
+export function jsoniseInvoice(invoice: Invoice): JsonMap {
+    return {
+        bindleVersion: invoice.bindleVersion,
+        bindle: jsoniseBindleMetadata(invoice.bindle),
+        annotations: invoice.annotations,
+        parcel: invoice.parcels.map(jsoniseParcel),
+        group: invoice.groups.map(jsoniseGroup),
+    };
+}
+
+function jsoniseBindleMetadata(metadata: BindleMetadata): JsonMap {
+    const map: JsonMap = {
+        name: metadata.name,
+        version: metadata.version,
+        authors: Array.of(...metadata.authors),
+    };
+    if (metadata.description) {
+        map.description = metadata.description;
+    }
+    return map;
+}
+
+function jsoniseParcel(parcel: Parcel): JsonMap {
+    const map: JsonMap = {
+        label: jsoniseLabel(parcel.label),
+    };
+    if (parcel.conditions) {
+        map.conditions = jsoniseConditions(parcel.conditions);
+    }
+    return map;
+}
+
+function jsoniseLabel(label: Label): JsonMap {
+    return { ...label };
+}
+
+function jsoniseConditions(conditions: Conditions): JsonMap {
+    return {
+        memberOf: Array.of(...conditions.memberOf),
+        requires: Array.of(...conditions.requires),
+    };
+}
+
+function jsoniseGroup(group: Group): JsonMap {
+    return { ...group };
+}
+
+export function parseCreateInvoiceResult(toml: JsonMap): Result<CreateInvoiceResult, InvoiceParseError> {
+    if (!isJsonMap(toml)) {
+        return Result.fail({ reason: 'not-a-map' });
+    }
+
+    const invoiceTOML = toml['invoice'];
+    if (!isJsonMap(invoiceTOML)) {
+        return Result.fail({ reason: 'invalid-field-value', fieldName: 'invoice' });
+    }
+    const invoice = parseInvoice(invoiceTOML);
+    if (!invoice.succeeded) {
+        return invoice;
+    }
+
+    const missingTOML = toml['missing'] || [];
+    if (!Array.isArray(missingTOML) || !isJsonMapArray(missingTOML)) {
+        return Result.fail({ reason: 'invalid-field-value', fieldName: 'missing' });
+    }
+    const missing = Result.allOk(missingTOML.map(parseLabel));
+    if (!missing.succeeded) {
+        return missing;
+    }
+
+    return Result.ok({
+        invoice: invoice.value,
+        missingParcels: missing.value,
+    });
 }

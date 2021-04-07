@@ -4,7 +4,7 @@ export interface Invoice {
     readonly bindleVersion: '1.0.0';
     readonly yanked: boolean;
     readonly bindle: BindleMetadata;
-    readonly annnotations: Dictionary<string>;
+    readonly annotations: Dictionary<string>;
     readonly parcels: ReadonlyArray<Parcel>;
     readonly groups: ReadonlyArray<Group>;
 }
@@ -61,4 +61,9 @@ export interface QueryResult {
     readonly total: number;
     readonly more: boolean;
     readonly invoices: ReadonlyArray<Invoice>;
+}
+
+export interface CreateInvoiceResult {
+    readonly invoice: Invoice;
+    readonly missingParcels: ReadonlyArray<Label>;
 }
