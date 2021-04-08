@@ -102,4 +102,9 @@ describe("Bindle", () => {
         const parcel = await client.getParcel('mybindle/0.1.0', 'f7f3b33707fb76d208f5839a40e770452dcf9f348bfd7faf2c524e0fa6710ed6');
         assert.equal('Fie on you Gary', parcel.toString());
     });
+    it("creates parcels", async () => {
+        await client.createParcel('mybindle/0.1.0', '460d5965e4d1909e8c7a3748a414956b7038ab5fd79937c9fcb2b214e6b0160a', Buffer.from('The front fell off', 'utf8'));
+        const fetched = await client.getParcel('mybindle/0.1.0', '460d5965e4d1909e8c7a3748a414956b7038ab5fd79937c9fcb2b214e6b0160a');
+        assert.equal('The front fell off', fetched.toString());
+    });
 });
