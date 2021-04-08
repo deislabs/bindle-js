@@ -19,10 +19,10 @@ name = "utility"
 satisfiedBy = "optional"
 
 [[parcel]]
-label.sha256 = "e1706ab0a39ac88094b6d54a3f5cdba41fe5a901"
-label.mediaType = "application/bin"
-label.name = "daemon"
-label.size = 248098
+label.sha256 = "f7f3b33707fb76d208f5839a40e770452dcf9f348bfd7faf2c524e0fa6710ed6"
+label.mediaType = "text/plain"
+label.name = "fie.txt"
+label.size = 15
 conditions.memberOf = ["server"]
 conditions.requires = ["utility"]
 
