@@ -74,6 +74,11 @@ export class BindleClient {
         const response = await axios.get<Buffer>(this.baseUrl + path, this.requestConfig());
         return response.data;
     }
+
+    public async createParcel(bindleId: string, parcelId: string, content: Buffer): Promise<void> {
+        const path = `/${INVOICE_PATH}/${bindleId}@${parcelId}`;
+        await axios.post(this.baseUrl + path, content, this.requestConfig());
+    }
 }
 
 export interface GetInvoiceOptions {
