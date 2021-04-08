@@ -68,6 +68,12 @@ export class BindleClient {
         }
         throw new BindleClientError('Invoice query error', queryResult.error);
     }
+
+    public async getParcel(bindleId: string, parcelId: string): Promise<Buffer> {
+        const path = `/${INVOICE_PATH}/${bindleId}@${parcelId}`;
+        const response = await axios.get<Buffer>(this.baseUrl + path, this.requestConfig());
+        return response.data;
+    }
 }
 
 export interface GetInvoiceOptions {

@@ -98,4 +98,8 @@ describe("Bindle", () => {
         const invoice = await client.getInvoice('your/fancy/bindle/0.3.0', { includeYanked: true });
         assert.equal('your/fancy/bindle', invoice.bindle.name);
     });
+    it("fetches parcels", async () => {
+        const parcel = await client.getParcel('mybindle/0.1.0', 'f7f3b33707fb76d208f5839a40e770452dcf9f348bfd7faf2c524e0fa6710ed6');
+        assert.equal('Fie on you Gary', parcel.toString());
+    });
 });
