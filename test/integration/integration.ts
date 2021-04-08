@@ -107,4 +107,14 @@ describe("Bindle", () => {
         const fetched = await client.getParcel('mybindle/0.1.0', '460d5965e4d1909e8c7a3748a414956b7038ab5fd79937c9fcb2b214e6b0160a');
         assert.equal('The front fell off', fetched.toString());
     });
+    it("lists missing parcels", async () => {
+        const missing = await client.listMissingParcels('mybindle/0.3.0');
+        assert.equal(3, missing.length);
+        assert.isTrue(missing.some((p) => p.sha256 === 'e1706ab0a39ac88094b6d54a3f5cdba41fe5a901'));
+        assert.isFalse(missing.some((p) => p.sha256 === 'f7f3b33707fb76d208f5839a40e770452dcf9f348bfd7faf2c524e0fa6710ed6'));
+    });
+    it("returns empty array if no missing parcels", async () => {
+        const missing = await client.listMissingParcels('my/fancy/bindle/0.3.0');
+        assert.equal(0, missing.length);
+    });
 });

@@ -2,11 +2,12 @@ import axios, { AxiosRequestConfig } from 'axios';
 import * as https from 'https';
 import * as toml from '@iarna/toml';
 
-import { CreateInvoiceResult, Invoice, QueryOptions, QueryResult } from './types';
-import { InvoiceParseError, jsoniseInvoice, parseCreateInvoiceResult, parseInvoice, parseQueryResult } from './parser';
+import { CreateInvoiceResult, Invoice, Label, QueryOptions, QueryResult } from './types';
+import { InvoiceParseError, jsoniseInvoice, parseCreateInvoiceResult, parseInvoice, parseMissingLabels, parseQueryResult } from './parser';
 
 const INVOICE_PATH = '_i';
 const QUERY_PATH = '_q';
+const RELATIONSHIP_PATH = '_r';
 
 export class BindleClient {
     constructor(
@@ -78,6 +79,18 @@ export class BindleClient {
     public async createParcel(bindleId: string, parcelId: string, content: Buffer): Promise<void> {
         const path = `/${INVOICE_PATH}/${bindleId}@${parcelId}`;
         await axios.post(this.baseUrl + path, content, this.requestConfig());
+    }
+
+    public async listMissingParcels(bindleId: string): Promise<ReadonlyArray<Label>> {
+        const path = `/${RELATIONSHIP_PATH}/missing/${bindleId}`;
+        const response = await axios.get<string>(this.baseUrl + path, this.requestConfig());
+        const tomlText = response.data;
+        const tomlParsed = toml.parse(tomlText) || [];
+        const labels = parseMissingLabels(tomlParsed);
+        if (labels.succeeded) {
+            return labels.value;
+        }
+        throw new BindleClientError('List missing parcels error', labels.error);
     }
 }
 
