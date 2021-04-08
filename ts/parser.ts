@@ -303,6 +303,19 @@ export function parseQueryResult(toml: JsonMap): Result<QueryResult, InvoicePars
     });
 }
 
+export function parseMissingLabels(toml: AnyJson): Result<ReadonlyArray<Label>, InvoiceParseError> {
+    if (!isJsonMap(toml)) {
+        return Result.fail({ reason: 'not-a-map' });
+    }
+
+    const missing = toml['missing'];
+    if (!Array.isArray(missing) || !isJsonMapArray(missing)) {
+        return Result.fail({ reason: 'invalid-field-value', fieldName: 'missing' });
+    }
+
+    return Result.allOk(missing.map(parseLabel));
+}
+
 function isStringArray(arg: any[]): arg is string[] {
     return arg.every(isString);
 }
